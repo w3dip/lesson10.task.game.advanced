@@ -6,6 +6,9 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.view.View;
+import android.view.animation.AccelerateDecelerateInterpolator;
+import android.view.animation.AlphaAnimation;
+import android.view.animation.Animation;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.Toast;
@@ -120,11 +123,11 @@ public class MainActivity extends Activity {
     }
 
     private Runnable openEmptyBucket(final View v) {
-        return () -> v.setVisibility(View.INVISIBLE);
+        return () -> swapBucket(v, false);
     }
 
     private Runnable openBallBucket(final View v) {
-        return () -> ((ImageView)v).setImageDrawable(getResources().getDrawable(R.mipmap.ball));
+        return () -> swapBucket(v, true);
     }
 
     private void startAnimation(View v, int currentBucketNum, int index) {
@@ -134,6 +137,36 @@ public class MainActivity extends Activity {
         } else {
             runnable = openEmptyBucket(v);
             handler.postDelayed(runnable, 1000 * index);
+        }
+    }
+
+    private void swapBucket(View v, boolean showBall) {
+        Animation fadeOut = new AlphaAnimation(1, 0);
+        fadeOut.setInterpolator(new AccelerateDecelerateInterpolator());
+        fadeOut.setDuration(1000);
+        fadeOut.setAnimationListener(new Animation.AnimationListener()
+        {
+            public void onAnimationEnd(Animation animation)
+            {
+                v.setVisibility(View.INVISIBLE);
+            }
+            public void onAnimationRepeat(Animation animation) {}
+            public void onAnimationStart(Animation animation) {}
+        });
+        v.startAnimation(fadeOut);
+        if (showBall) {
+            ((ImageView)v).setImageDrawable(getResources().getDrawable(R.mipmap.ball));
+            Animation fadeIn = new AlphaAnimation(0, 1);
+            fadeIn.setInterpolator(new AccelerateDecelerateInterpolator());
+            fadeIn.setDuration(1000);
+            fadeIn.setAnimationListener(new Animation.AnimationListener() {
+                public void onAnimationEnd(Animation animation) {
+                    v.setVisibility(View.VISIBLE);
+                }
+                public void onAnimationStart(Animation animation) {}
+                public void onAnimationRepeat(Animation animation) {}
+            });
+            v.startAnimation(fadeIn);
         }
     }
 }
